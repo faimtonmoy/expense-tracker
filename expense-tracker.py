@@ -10,6 +10,19 @@ def load_expenses(file_path):
         return []
 
 
+def list_expenses(expenses):
+    if not expenses:
+        print("No expenses found.")
+        return
+    else:
+        print(f"{'ID':<4} {'Date':<12} {'Description':<15} {'Amount':<8} ")
+        print("-" * 45)
+        for expense in expenses:
+            print(
+                f"{expense['id']:<4} {expense['date']:<12} {expense['description']:<15} {expense['amount']:<8.2f}"
+            )
+
+
 def main():
     parser = argparse.ArgumentParser(description="Expense Tracker")
     subparsers = parser.add_subparsers(dest="command", help="Commands")
@@ -38,9 +51,11 @@ def main():
     elif args.command == "delete":
         print(f"Deleting expense with ID: {args.id}")
     elif args.command == "list":
-        print("Listing all expenses")
+        list_expenses(expenses)
     elif args.command == "summary":
         print(f"Showing summary for month: {args.month}")
+    else:
+        parser.print_help()
 
 
 if __name__ == "__main__":
