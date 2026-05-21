@@ -1,4 +1,13 @@
 import argparse
+import json
+
+
+def load_expenses(file_path):
+    try:
+        with open(file_path, "r") as file:
+            return json.load(file)
+    except FileNotFoundError:
+        return []
 
 
 def main():
@@ -21,6 +30,8 @@ def main():
     summary_parser.add_argument("--month", type=int)
 
     args = parser.parse_args()
+
+    expenses = load_expenses("expenses.json")
 
     if args.command == "add":
         print(f"Adding expense: {args.amount} - {args.description}")
