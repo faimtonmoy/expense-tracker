@@ -1,5 +1,6 @@
 import argparse
 import json
+from datetime import datetime
 
 
 def load_expenses(file_path):
@@ -16,11 +17,26 @@ def list_expenses(expenses):
         return
     else:
         print(f"{'ID':<4} {'Date':<12} {'Description':<15} {'Amount':<8} ")
-        print("-" * 45)
+
         for expense in expenses:
             print(
                 f"{expense['id']:<4} {expense['date']:<12} {expense['description']:<15} {expense['amount']:<8.2f}"
             )
+
+
+def add_expense(expenses, description, amount, file_path):
+    new_id = max([exp["id"] for exp in expenses], default=0) + 1
+    new_expense = {
+        "id": new_id,
+        "date": datetime.now().strftime("%Y-%m-%d"),
+        "description": description,
+        "amount": amount,
+    }
+    expenses.append(new_expense)
+    with open(file_path, "w") as file:
+        json.dump(expenses, file)
+    print(f"Expense added successfully (ID: {new_id})")
+    return expenses
 
 
 def main():
@@ -47,7 +63,7 @@ def main():
     expenses = load_expenses("expenses.json")
 
     if args.command == "add":
-        print(f"Adding expense: {args.amount} - {args.description}")
+        expenses = add_expense(expenses, args.description, args.amount, "expenses.json")
     elif args.command == "delete":
         print(f"Deleting expense with ID: {args.id}")
     elif args.command == "list":
