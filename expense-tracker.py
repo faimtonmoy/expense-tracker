@@ -24,19 +24,62 @@ def list_expenses(expenses):
             )
 
 
-def add_expense(expenses, description, amount, file_path):
+def add_expense(expenses, description, amount, file_path="expenses.json"):
+    """Add a new expense to the tracker"""
+    # Validate amount is positive
+    if amount <= 0:
+        print(f"Error: Amount must be positive. Got: ${amount}")
+        return expenses  # Return unchanged expenses
+
     new_id = max([exp["id"] for exp in expenses], default=0) + 1
-    new_expense = {
+    expense = {
         "id": new_id,
         "date": datetime.now().strftime("%Y-%m-%d"),
         "description": description,
         "amount": amount,
     }
-    expenses.append(new_expense)
+    expenses.append(expense)
     with open(file_path, "w") as file:
         json.dump(expenses, file)
     print(f"Expense added successfully (ID: {new_id})")
     return expenses
+
+
+def delete_expense(expenses, expense_id, file_path):
+    original_length = len(expenses)
+    expenses = [exp for exp in expenses if exp["id"] != expense_id]
+    if len(expenses) < original_length:
+        with open(file_path, "w") as file:
+            json.dump(expenses, file)
+        print(f"Expense deleted successfully (ID: {expense_id})")
+    else:
+        print(f"Expense with ID {expense_id} not found.")
+
+
+def get_summary(expenses, month=None):
+    count = 0
+    total = 0
+    for exp in expenses:
+        if month:
+            exp_month = datetime.strptime(exp["date"], "%Y-%m-%d").month
+            if exp_month == month:
+                count += 1
+                total += exp["amount"]
+            else:
+                total += exp["amount"]
+                count += 1
+        if count < 0:
+            if month:
+                print(f"No expenses found for month: {month}")
+            else:
+                print("No expenses found.")
+        else:
+            if month:
+                print(
+                    f"Total expenses for month {month}: {total:.2f} ({count} expenses)"
+                )
+            else:
+                print(f"Total expenses: {total:.2f} ({count} expenses)")
 
 
 def main():
@@ -44,7 +87,7 @@ def main():
     subparsers = parser.add_subparsers(dest="command", help="Commands")
     # add command
     add_parser = subparsers.add_parser("add")
-    add_parser.add_argument("amount", type=float)
+    add_parser.add_argument("--amount", type=float)
     add_parser.add_argument("--description", required=True)
 
     # delete command
@@ -65,11 +108,11 @@ def main():
     if args.command == "add":
         expenses = add_expense(expenses, args.description, args.amount, "expenses.json")
     elif args.command == "delete":
-        print(f"Deleting expense with ID: {args.id}")
+        delete_expense(expenses, args.id, "expenses.json")
     elif args.command == "list":
         list_expenses(expenses)
     elif args.command == "summary":
-        print(f"Showing summary for month: {args.month}")
+        get_summary(expenses, month=args.month)
     else:
         parser.print_help()
 
